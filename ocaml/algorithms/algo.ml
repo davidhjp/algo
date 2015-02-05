@@ -1,10 +1,13 @@
 module List = Batteries.List 
 
-(**
- * Creating subsets using the graycode approach
- *)
-let generate_subsets_graycode l = 
-  l
+let rec reverse_list r = function
+  | h::t -> h :: reverse_list r t
+  | [] -> r
+
+
+(*  Creating subsets using the graycode approach *)
+let rec generate_subsets_graycode l = 
+  reverse_list [] l 
 
 
 let () = 
