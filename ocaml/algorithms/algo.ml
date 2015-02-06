@@ -1,4 +1,7 @@
 
+
+let (|>) x f = f x
+
 (* In this code, I will try not to use the battery package *)
 module List = 
 struct
@@ -19,7 +22,8 @@ struct
   let print_list l =
     let () = print_string "[" in
     let () = pr_list l in
-    print_string "]"
+    let () = print_string "]" in
+    flush stdout
 
   let rec nth i = function
     | h::t when i = 0 -> h
@@ -35,9 +39,9 @@ struct
 
   let rec init i f = 
     let rec init_i i ii f =
-      match i = ii with
-      | true -> [f i]
-      | false -> (f i)::(init_i i (ii+1) f)
+      match i-1 = ii with
+      | true -> [f ii]
+      | false -> (f ii)::(init_i i (ii+1) f)
     in
     init_i i 0 f
 
@@ -57,25 +61,48 @@ struct
     | h::t -> f h; iter f t
     | [] -> ()
 
-  let rec get_graycode l = 
+  let rec filter f = function 
+    | h::t -> 
+      (match f h with | true -> h :: (filter f t) | _ -> filter f t)
+    | [] -> []
+
+  let rec get_graycode ?k l = 
     match length l with 
     | 1 -> [[]; [nth 0 l]]
     | _ ->
       let (l,lst) = fetch_last l in
-      let l1 = get_graycode l in
+      let l1 = 
+        match k with
+        | Some k -> get_graycode ~k:k l
+        | None -> get_graycode l
+      in
       let l2 = reverse l1 in
+      let l2 = 
+        match k with
+        | Some k -> filter (fun x -> if ((length x)+1) <= k then true else false) l2
+        | None -> l2
+      in
       let l2 = map (fun x -> x @ [lst]) l2 in
       l1 @ l2
+
+  let rec get_k_subsets k l =
+    let l = filter (fun x -> if length x = k then true else false ) l in
+    l
+
 end 
 
-
-(*  Creating subsets using the graycode approach *)
-let rec generate_subsets l = 
-  List.get_graycode l
-
+let generate_subsets ?k l =
+  match k with
+  | Some k -> 
+    let l = List.get_graycode ~k:k l in
+    List.get_k_subsets k l
+  | None -> List.get_graycode l
 
 let () = 
-  let l = [1;2;3] in
-  let l = generate_subsets l in
-  let () = List.iter (fun x -> List.print_list x) l in
+  let l = List.init 16 (fun x -> x) in
+  let l = List.map (fun x -> x + 1) l in
+  let l1 = generate_subsets ~k:6 l in
+  let l2 = generate_subsets ~k:3 l in
+  let () = List.iter (fun x -> List.print_list x ) l1 in
+  let () = List.iter (fun x -> List.print_list x ) l2 in
   ()
