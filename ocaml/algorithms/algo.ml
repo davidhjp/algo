@@ -64,7 +64,7 @@ struct
       let (l,lst) = fetch_last l in
       let l1 = get_graycode l in
       let l2 = reverse l1 in
-      let l2 = map (fun x -> lst::x) l2 in
+      let l2 = map (fun x -> x @ [lst]) l2 in
       l1 @ l2
 end 
 
