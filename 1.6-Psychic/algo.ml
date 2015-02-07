@@ -142,23 +142,11 @@ let () =
   let l = List.map (fun x -> x + 1) l in
   let l1 = generate_subsets ~k:3 l in
   let l2 = generate_subsets ~k:6 l in
-  let l3 = generate_subsets ~k:3 [1;2;3;9;5;6] in
 (*   let tot = Math.combination (Big_int.big_int_of_int 15) (Big_int.big_int_of_int 6) in *)
   let tot = List.length l1 in
-  let nle = Array.of_list @@ List.init tot (fun x -> false) in
-  let yy = List.map (fun x -> fst @@ List.rank x l1) l3 in
-  List.iter(fun x -> List.print_list x) l1;
-  print_endline "\n-----";
-  List.iter(fun x -> List.print_list x) l3;
-  print_endline "\n-----";
-  List.print_list yy;
-  print_endline "\n-----";
-  List.iter(fun x -> List.print_list @@ List.nth x l1 ) yy;
-  ()
-(*
-  let i = ref 1 in
+  let bv = Array.of_list @@ List.init tot (fun x -> false) in
+(*   let ss = List.map (fun x -> fst @@ List.rank x l1) l3 in *)
+  let i = ref 0 in
   while !i <= tot do
-    let () = i := !i + 1 in
     ()
   done
-*)
