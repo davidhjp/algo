@@ -3,6 +3,10 @@ module Array = Batteries.Array
 let (|>) x f = f x
 let (>>) f g x = f (g x)
 
+let nnum = 15
+let knum = 6
+let lnum = 3
+
 module List = 
 struct
   let rec reverse = function
@@ -148,7 +152,7 @@ let get_next_ticket l1 l2 bv1 bv2 =
       match bv2.(i) with
       | true -> a
       | false ->
-        let l_subsets = generate_subsets ~k:3 b in
+        let l_subsets = generate_subsets ~k:lnum b in
         let rank_map_l1 = List.map (fun x -> List.rank x l1 ) l_subsets in
         let quality = List.fold_left (fun a (i,_) -> 
             match bv1.(i) with | true -> a | _ -> a + 1 
@@ -170,10 +174,10 @@ let get_next_ticket l1 l2 bv1 bv2 =
   | None -> None
 
 let () = 
-  let l = List.init 15 (fun x -> x) in
+  let l = List.init nnum (fun x -> x) in
   let l = List.map (fun x -> x + 1) l in
-  let l1 = generate_subsets ~k:3 l in
-  let l2 = generate_subsets ~k:6 l in
+  let l1 = generate_subsets ~k:lnum l in
+  let l2 = generate_subsets ~k:knum l in
 (*   let tot = Math.combination (Big_int.big_int_of_int 15) (Big_int.big_int_of_int 6) in *)
   let tot = List.length l1 in
   let tot2 = List.length l2 in
@@ -187,7 +191,9 @@ let () =
       let lll = Array.to_list bv1 in
       let falses = List.fold_left (fun a x -> if x = false then a+1 else a) 0 lll in
       let trues = List.fold_left (fun a x -> if x = true then a+1 else a) 0 lll in
-      print_endline @@ "trues "^ (string_of_int @@ trues)^" falses "^(string_of_int @@ falses);
+      let (a,b,c) = match ticket with | Some x -> x | None -> failwith "ww" in
+      let () = print_string @@ "Bought : ";  List.print_list b ; print_endline "" in
+(*       print_endline @@ "trues "^ (string_of_int @@ trues)^" falses "^(string_of_int @@ falses); *)
       match ticket with
       | None -> failwith "Incorrect algo"
       | _ -> num := !num + 1
