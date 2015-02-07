@@ -1,8 +1,8 @@
-
+module Array = Batteries.Array
 
 let (|>) x f = f x
+let (>>) f g x = f (g x)
 
-(* In this code, I will try not to use the battery package *)
 module List = 
 struct
   let rec reverse = function
@@ -66,6 +66,14 @@ struct
       (match f h with | true -> h :: (filter f t) | _ -> filter f t)
     | [] -> []
 
+  let rec exists f = function
+    | h::t -> 
+      (match f h with
+       | true -> true
+       | false -> exists f t)
+    | [] -> false
+
+
   let rec get_graycode ?k l = 
     match length l with 
     | 1 -> [[]; [nth 0 l]]
@@ -89,7 +97,38 @@ struct
     let l = filter (fun x -> if length x = k then true else false ) l in
     l
 
+  let rec findi f l = 
+    fr 0 f l
+  and fr i f = function
+    | h::t -> 
+      (match f i h with
+       | true -> (i,h)
+       | false -> fr (i+1) f t)
+    | [] -> raise Not_found
+
+  let rec for_all f = function
+    | h::t -> if f h then for_all f t else false
+    | [] -> true
+
+  let rank e l = 
+    findi (fun i x -> for_all (fun y -> exists (fun x -> x=y) e ) x ) l
+
 end 
+
+module Math =
+struct 
+
+  let rec factorial i = 
+    match Big_int.int_of_big_int i with
+    | 1 -> i 
+    | n -> Big_int.mult_big_int i (factorial (Big_int.sub_big_int i (Big_int.big_int_of_int 1)))
+
+  let rec combination n k =
+    Big_int.div_big_int (factorial n) (Big_int.mult_big_int (factorial k)  (factorial (Big_int.sub_big_int n  k)))
+
+end
+
+
 
 let generate_subsets ?k l =
   match k with
@@ -99,10 +138,27 @@ let generate_subsets ?k l =
   | None -> List.get_graycode l
 
 let () = 
-  let l = List.init 16 (fun x -> x) in
+  let l = List.init 15 (fun x -> x) in
   let l = List.map (fun x -> x + 1) l in
-  let l1 = generate_subsets ~k:6 l in
-  let l2 = generate_subsets ~k:3 l in
-  let () = List.iter (fun x -> List.print_list x ) l1 in
-  let () = List.iter (fun x -> List.print_list x ) l2 in
+  let l1 = generate_subsets ~k:3 l in
+  let l2 = generate_subsets ~k:6 l in
+  let l3 = generate_subsets ~k:3 [1;2;3;9;5;6] in
+(*   let tot = Math.combination (Big_int.big_int_of_int 15) (Big_int.big_int_of_int 6) in *)
+  let tot = List.length l1 in
+  let nle = Array.of_list @@ List.init tot (fun x -> false) in
+  let yy = List.map (fun x -> fst @@ List.rank x l1) l3 in
+  List.iter(fun x -> List.print_list x) l1;
+  print_endline "\n-----";
+  List.iter(fun x -> List.print_list x) l3;
+  print_endline "\n-----";
+  List.print_list yy;
+  print_endline "\n-----";
+  List.iter(fun x -> List.print_list @@ List.nth x l1 ) yy;
   ()
+(*
+  let i = ref 1 in
+  while !i <= tot do
+    let () = i := !i + 1 in
+    ()
+  done
+*)
