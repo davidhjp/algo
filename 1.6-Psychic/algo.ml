@@ -193,7 +193,7 @@ let () =
       let trues = List.fold_left (fun a x -> if x = true then a+1 else a) 0 lll in
       let (a,b,c) = match ticket with | Some x -> x | None -> failwith "ww" in
       let () = print_string @@ "Bought : ";  List.print_list b ; print_endline "" in
-(*       print_endline @@ "trues "^ (string_of_int @@ trues)^" falses "^(string_of_int @@ falses); *)
+      print_endline @@ "trues "^ (string_of_int @@ trues)^" falses "^(string_of_int @@ falses);
       match ticket with
       | None -> failwith "Incorrect algo"
       | _ -> num := !num + 1
