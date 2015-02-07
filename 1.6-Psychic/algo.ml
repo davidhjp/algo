@@ -113,6 +113,11 @@ struct
   let rank e l = 
     findi (fun i x -> for_all (fun y -> exists (fun x -> x=y) e ) x ) l
 
+  let rec fold_left f e = function
+    | h::t -> fold_left f (f e h) t
+    | [] -> e
+
+
 end 
 
 module Math =
@@ -137,6 +142,33 @@ let generate_subsets ?k l =
     List.get_k_subsets k l
   | None -> List.get_graycode l
 
+let get_next_ticket l1 l2 bv1 bv2 =
+  let ticket = List.fold_left (fun a b -> 
+      let (i,_) = List.rank b l2 in
+      match bv2.(i) with
+      | true -> a
+      | false ->
+        let l_subsets = generate_subsets ~k:3 b in
+        let rank_map_l1 = List.map (fun x -> List.rank x l1 ) l_subsets in
+        let quality = List.fold_left (fun a (i,_) -> 
+            match bv1.(i) with | true -> a | _ -> a + 1 
+          ) 0 rank_map_l1 in
+        match a with
+        | None -> Some (quality,b,rank_map_l1)
+        | Some (q,e,_) ->
+          if quality > q then 
+            Some (quality,b,rank_map_l1)
+          else a
+    ) None l2
+  in
+  match ticket with
+  | Some (_,b,r) as a ->
+      let (i,_) = List.rank b l2 in
+      let () = bv2.(i) <- true in
+      let () = List.iter (fun (i,_) -> bv1.(i) <- true ) r in
+      a
+  | None -> None
+
 let () = 
   let l = List.init 15 (fun x -> x) in
   let l = List.map (fun x -> x + 1) l in
@@ -144,9 +176,21 @@ let () =
   let l2 = generate_subsets ~k:6 l in
 (*   let tot = Math.combination (Big_int.big_int_of_int 15) (Big_int.big_int_of_int 6) in *)
   let tot = List.length l1 in
-  let bv = Array.of_list @@ List.init tot (fun x -> false) in
+  let tot2 = List.length l2 in
+  let bv1 = Array.of_list @@ List.init tot (fun x -> false) in
+  let bv2 = Array.of_list @@ List.init tot2 (fun x -> false) in
 (*   let ss = List.map (fun x -> fst @@ List.rank x l1) l3 in *)
-  let i = ref 0 in
-  while !i <= tot do
-    ()
-  done
+  let num = ref 0 in
+  let () =
+    while Array.exists (fun x -> x=false) bv1 do
+      let ticket = get_next_ticket l1 l2 bv1 bv2 in
+      let lll = Array.to_list bv1 in
+      let falses = List.fold_left (fun a x -> if x = false then a+1 else a) 0 lll in
+      let trues = List.fold_left (fun a x -> if x = true then a+1 else a) 0 lll in
+      print_endline @@ "trues "^ (string_of_int @@ trues)^" falses "^(string_of_int @@ falses);
+      match ticket with
+      | None -> failwith "Incorrect algo"
+      | _ -> num := !num + 1
+    done
+  in
+  print_endline @@ "Total number of tickets to buy : "^ string_of_int @@ !num
