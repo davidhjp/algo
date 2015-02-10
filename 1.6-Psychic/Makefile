@@ -3,4 +3,4 @@ all:
 	ctags -R .
 
 clean:
-	rm -f *.cmx *.cmi *.o *.exe *.annot tags
+	rm -f *.cmx *.cmi *.o *.exe *.annot tags *.*~
