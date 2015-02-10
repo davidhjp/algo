@@ -110,6 +110,10 @@ struct
        | false -> fr (i+1) f t)
     | [] -> raise Not_found
 
+  let rec find_option f = function
+    | h::t -> (match f h with | true -> Some h | false -> find_option f t)
+    | [] -> None
+
   let rec for_all f = function
     | h::t -> if f h then for_all f t else false
     | [] -> true
@@ -120,6 +124,9 @@ struct
   let rec fold_left f e = function
     | h::t -> fold_left f (f e h) t
     | [] -> e
+
+  let rec intersect l1 l2 = 
+    filter (fun x -> exists (fun y -> x=y ) l2 ) l1
 
 
 end 
@@ -173,6 +180,31 @@ let get_next_ticket l1 l2 bv1 bv2 =
       a
   | None -> None
 
+let rec optimize tickets lnum =
+  let h = List.fold_left (fun a x -> 
+      let h = List.find_option (fun y ->
+          match x = y with
+          | true -> false
+          | false ->
+            let s = List.intersect x y in
+            List.length s >= lnum
+        ) tickets
+      in
+      match a with 
+      | None ->
+        (match h with
+         | None -> a
+         | _ as x -> x)
+      | _ -> a
+    ) None tickets 
+  in
+  match h with
+  | None -> tickets
+  | Some x -> 
+    let tickets = List.filter (fun y -> y <> x ) tickets in
+    optimize tickets lnum
+
+
 let () = 
   let l = List.init nnum (fun x -> x) in
   let l = List.map (fun x -> x + 1) l in
@@ -185,18 +217,24 @@ let () =
   let bv2 = Array.of_list @@ List.init tot2 (fun x -> false) in
 (*   let ss = List.map (fun x -> fst @@ List.rank x l1) l3 in *)
   let num = ref 0 in
-  let () =
-    while Array.exists (fun x -> x=false) bv1 do
-      let ticket = get_next_ticket l1 l2 bv1 bv2 in
-      let lll = Array.to_list bv1 in
-      let falses = List.fold_left (fun a x -> if x = false then a+1 else a) 0 lll in
-      let trues = List.fold_left (fun a x -> if x = true then a+1 else a) 0 lll in
-      let (a,b,c) = match ticket with | Some x -> x | None -> failwith "ww" in
-      let () = print_string @@ "Bought : ";  List.print_list b ; print_endline "" in
-      print_endline @@ "trues "^ (string_of_int @@ trues)^" falses "^(string_of_int @@ falses);
-      match ticket with
-      | None -> failwith "Incorrect algo"
-      | _ -> num := !num + 1
-    done
+  let tickets =
+    let tt = ref [] in
+    (while Array.exists (fun x -> x=false) bv1 do
+       let ticket = get_next_ticket l1 l2 bv1 bv2 in
+       let lll = Array.to_list bv1 in
+       let falses = List.fold_left (fun a x -> if x = false then a+1 else a) 0 lll in
+       let trues = List.fold_left (fun a x -> if x = true then a+1 else a) 0 lll in
+       let (a,b,c) = match ticket with | Some x -> x | None -> failwith "ww" in
+       let () = print_string @@ "Bought : ";  List.print_list b ; print_endline "" in
+       print_endline @@ "trues "^ (string_of_int @@ trues)^" falses "^(string_of_int @@ falses);
+       let () = tt := b :: !tt in
+       match ticket with
+       | None -> failwith "Incorrect algo"
+       | _ -> num := !num + 1
+     done);
+    print_endline @@ "Total number of tickets bought without opt : "^ string_of_int @@ !num;
+    !tt
   in
-  print_endline @@ "Total number of tickets to buy : "^ string_of_int @@ !num
+  let tickets = optimize tickets lnum in
+  print_endline @@ "Total number of tickets after opt : "^ string_of_int @@ List.length tickets;
+(*   List.iter (fun x -> List.print_list x ) tickets; *)
