@@ -9,10 +9,10 @@ let (>>) f g x = f (g x)
  * n=15, k=j=5, l=4 mine=152, best=137
  * n=15, k=j=6, l=3 mine=6
  *)
-let nnum = 15
-let knum = 5
-let jnum = 5
-let lnum = 4
+let nnum = 18
+let knum = 10
+let jnum = 7
+let lnum = 6
 
 module List = 
 struct
@@ -67,9 +67,13 @@ struct
     | h::t ->  (match t with | [] -> h | _ -> last t)
     | [] -> [] 
 
-  let rec map f = function
-    | h::t -> (f h) :: (map f t)
-    | [] -> []
+  let map f ll =
+    let rec mh l f = function
+      | h::t -> (mh ((f h)::l) f t)
+      | [] -> l
+    in
+    reverse @@ mh [] f ll
+
 
   let rec iter f = function
     | h::t -> f h; iter f t
@@ -224,6 +228,13 @@ let rec optimize tickets lnum =
     optimize tickets lnum
 
 let remove_dp l2 l3 j k n = 
+  let rec insert l e = function
+    | h::t as tt -> (if h < e then insert (h::l) e t else insert2 (e::l) tt ) 
+    | [] -> List.reverse (e::l)
+  and insert2 l = function
+    | h::t -> insert2 (h::l) t
+    | [] -> List.reverse l
+  in
   let rec rh v l el3 = function (* this is element of n *)
     | h::t when v=0 -> l
     | h::t -> 
@@ -238,7 +249,7 @@ let remove_dp l2 l3 j k n =
     let v = k-j in
     List.map (fun el3 -> 
         let ll = rh v [] el3 n in
-        el3 @ ll
+        List.fold_left (fun a b -> insert [] b a) el3 ll
       ) l3
 
   
