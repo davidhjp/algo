@@ -1,5 +1,5 @@
 all:
-	ocamlfind ocamlopt -linkpkg -package batteries -annot -o algo.exe algo.ml
+	ocamlfind ocamlopt -linkpkg -package batteries -annot -g -o algo.exe algo.ml
 	ctags -R .
 
 clean:

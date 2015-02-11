@@ -223,15 +223,23 @@ let rec optimize tickets lnum =
     let tickets = List.filter (fun y -> y <> x ) tickets in
     optimize tickets lnum
 
-let remove_dp l2 l3 = 
-  let rec rh l l2 l3 =
-    match l3 with
-    | [] -> l
+let remove_dp l2 l3 j k n = 
+  let rec rh v l el3 = function (* this is element of n *)
+    | h::t when v=0 -> l
     | h::t -> 
-      let (i,e) = List.findi (fun i x -> List.subseteq h x ) l2 in
-      rh (e::l) l2 t
+        (match List.for_all (fun x -> x <> h) el3 with
+        | true -> rh (v-1) (h::l) el3 t
+        | false -> rh v l el3 t)
+    | [] -> failwith "Could not find appropriate token"
   in
-  rh [] l2 l3
+  match j=k with
+  | true -> l2
+  | false ->
+    let v = k-j in
+    List.map (fun el3 -> 
+        let ll = rh v [] el3 n in
+        el3 @ ll
+      ) l3
 
   
 (*
@@ -249,8 +257,7 @@ let () =
   let l1 = generate_subsets ~k:lnum l in
   let l2 = generate_subsets ~k:knum l in
   let l3 = generate_subsets ~k:jnum l in
-  let l2 = remove_dp l2 l3 in
-  let l2 = List.reverse l2 in
+  let l2 = remove_dp l2 l3 jnum knum l in
 (*   let tot = Math.combination (Big_int.big_int_of_int 15) (Big_int.big_int_of_int 6) in *)
   let tot = List.length l1 in
   let bv1 = Array.of_list @@ List.init tot (fun x -> false) in
