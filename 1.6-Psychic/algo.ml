@@ -9,16 +9,19 @@ let (>>) f g x = f (g x)
  * n=15, k=j=5, l=4 mine=152, best=137
  * n=15, k=j=6, l=3 mine=6
  *)
-let nnum = 5
-let knum = 3
-let jnum = 3
-let lnum = 2
+let nnum = 15
+let knum = 5
+let jnum = 5
+let lnum = 4
 
 module List = 
 struct
-  let rec reverse = function
-    | h::t -> reverse t @ [h]
-    | [] -> []
+  let reverse l = 
+    let rec rv l a = match l with
+      | [] -> a
+      | h::t -> rv t (h::a)
+    in
+    rv l []
 
   let rec hd = function
     | h::t when t = [] -> t
@@ -220,11 +223,24 @@ let rec optimize tickets lnum =
     let tickets = List.filter (fun y -> y <> x ) tickets in
     optimize tickets lnum
 
-let rec remove_dp l2 = function
+let remove_dp l2 l3 = 
+  let rec rh l l2 l3 =
+    match l3 with
+    | [] -> l
+    | h::t -> 
+      let (i,e) = List.findi (fun i x -> List.subseteq h x ) l2 in
+      rh (e::l) l2 t
+  in
+  rh [] l2 l3
+
+  
+(*
+  = function
   | h::t -> 
     let (i,e) = List.findi (fun i x -> List.subseteq h x ) l2 in
     e :: (remove_dp l2 t)
   | [] -> []
+*)
 
 
 let () = 
@@ -234,6 +250,7 @@ let () =
   let l2 = generate_subsets ~k:knum l in
   let l3 = generate_subsets ~k:jnum l in
   let l2 = remove_dp l2 l3 in
+  let l2 = List.reverse l2 in
 (*   let tot = Math.combination (Big_int.big_int_of_int 15) (Big_int.big_int_of_int 6) in *)
   let tot = List.length l1 in
   let bv1 = Array.of_list @@ List.init tot (fun x -> false) in
